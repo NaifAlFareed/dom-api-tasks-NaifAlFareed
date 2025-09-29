@@ -80,37 +80,29 @@ data.content   // the quote text
 data.author    // the author
 */
  
-(function () {
-  const loadBtn = document.getElementById("t3-loadQuote");
-  const quoteEl = document.getElementById("t3-quote");
-  const authorEl = document.getElementById("t3-author");
-  if (!loadBtn || !quoteEl || !authorEl) return;
+const quoteBtn   = document.getElementById("t3-loadQuote");
+const quoteText  = document.getElementById("t3-quote");
+const quoteAuthor = document.getElementById("t3-author");
 
-  loadBtn.addEventListener("click", function () {
-    loadBtn.disabled = true;
-    quoteEl.textContent = "Loading…";
-    authorEl.textContent = "";
-
-    fetch("https://dummyjson.com/quotes/random")
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        quoteEl.textContent = data.content;
-        authorEl.textContent = "— " + data.author;
-      })
-      .catch(function (err) {
-        quoteEl.textContent = "Could not load a quote right now.";
-        authorEl.textContent = "— Please try again.";
-        console.error(err);
-      })
-      .finally(function () {
-        loadBtn.disabled = false;
-      });
-  });
-})();
-
+quoteBtn.addEventListener("click", () => {
+  fetch("https://dummyjson.com/quotes/random")
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Network response failed: " + res.status);
+      }
+      return res.json();
+    })
+    .then(data => {
+      // Use correct field: `quote`
+      quoteText.textContent  = data.quote || "No quote found.";
+      quoteAuthor.textContent = "— " + (data.author || "Anonymous");
+    })
+    .catch(err => {
+      quoteText.textContent  = "Couldn’t load a quote.";
+      quoteAuthor.textContent = "";
+      console.error("Quote fetch error:", err);
+    });
+});
 
 /*  
 =======================================
@@ -136,37 +128,28 @@ data.main.temp      → temperature (°C)
 data.main.humidity  → humidity (%)
 data.wind.speed     → wind speed (m/s)
 */
-(function () {
-  const wxBtn  = document.getElementById("t4-loadWx");
-  const tempEl = document.getElementById("t4-temp");
-  const humEl  = document.getElementById("t4-hum");
-  const windEl = document.getElementById("t4-wind");
-  if (!wxBtn || !tempEl || !humEl || !windEl) return;
+const loadWeatherBtn = document.getElementById("t4-loadWx");
+const tempOutput     = document.getElementById("t4-temp");
+const humidityOutput = document.getElementById("t4-hum");
+const windOutput     = document.getElementById("t4-wind");
 
-  const API_KEY = "1e134d1402881758ecd253bcd0d0d300";
-
-  wxBtn.addEventListener("click", function () {
-    wxBtn.disabled = true;
-    tempEl.textContent = humEl.textContent = windEl.textContent = "…";
-
-    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Dammam&appid=${API_KEY}&units=metric`)
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        tempEl.textContent = Math.round(data.main.temp) + " °C";
-        humEl.textContent  = data.main.humidity + " %";
-        windEl.textContent = data.wind.speed + " m/s";
-      })
-      .catch(function (err) {
-        tempEl.textContent = "Error";
-        humEl.textContent  = "Error";
-        windEl.textContent = "Error";
-        console.error("Weather fetch failed:", err);
-      })
-      .finally(function () {
-        wxBtn.disabled = false;
-      });
-  });
-})();
+loadWeatherBtn.addEventListener("click", () => {
+  fetch("https://api.openweathermap.org/data/2.5/weather?q=Dammam&appid=1e134d1402881758ecd253bcd0d0d300&units=metric")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Request failed with status " + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      tempOutput.textContent     = `${data.main.temp} °C`;
+      humidityOutput.textContent = `${data.main.humidity} %`;
+      windOutput.textContent     = `${data.wind.speed} m/s`;
+    })
+    .catch(error => {
+      tempOutput.textContent     = "N/A";
+      humidityOutput.textContent = "N/A";
+      windOutput.textContent     = "N/A";
+      console.error("Weather data could not be retrieved:", error);
+    });
+});
