@@ -19,9 +19,9 @@ inside the <p> element with id="t1-msg".
 💡 Hint:
 document.getElementById("t1-msg").innerHTML = "Hello, World!";
 */
-document.addEventListener("DOMContentLoaded", function () {
-const welcomeEl  = document.getElementById("t1-msg");
-if (welcomeEl ) welcomeEl.textContent = "Hello, World!";
+ document.addEventListener("DOMContentLoaded", function () {
+  const msgEl = document.getElementById("t1-msg");
+  if (msgEl) msgEl.textContent = "Hello, World!";
 });
 
 /*  
@@ -43,13 +43,15 @@ button.addEventListener("click", function () {
     // change text here
 });
 */
- const interactionBtn = document.getElementById("t2-btn");
- const interactionStatus = document.getElementById("t2-status");
- if (interactionBtn && interactionStatus) {
-    interactionBtn.addEventListener("click", function() {
-        interactionStatus.textContent = "You clicked the button!";
-    });
- }
+ (function () {
+  const statusEl = document.getElementById("t2-status");
+  const btn = document.getElementById("t2-btn");
+  if (!statusEl || !btn) return;
+
+  btn.addEventListener("click", function () {
+    statusEl.textContent = "You clicked the button!";
+  });
+})();
 
 /*  
 =======================================
@@ -78,6 +80,37 @@ data.content   // the quote text
 data.author    // the author
 */
  
+(function () {
+  const loadBtn = document.getElementById("t3-loadQuote");
+  const quoteEl = document.getElementById("t3-quote");
+  const authorEl = document.getElementById("t3-author");
+  if (!loadBtn || !quoteEl || !authorEl) return;
+
+  loadBtn.addEventListener("click", function () {
+    loadBtn.disabled = true;
+    quoteEl.textContent = "Loading…";
+    authorEl.textContent = "";
+
+    fetch("https://dummyjson.com/quotes/random")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        quoteEl.textContent = data.content;
+        authorEl.textContent = "— " + data.author;
+      })
+      .catch(function (err) {
+        quoteEl.textContent = "Could not load a quote right now.";
+        authorEl.textContent = "— Please try again.";
+        console.error(err);
+      })
+      .finally(function () {
+        loadBtn.disabled = false;
+      });
+  });
+})();
+
 
 /*  
 =======================================
@@ -103,3 +136,37 @@ data.main.temp      → temperature (°C)
 data.main.humidity  → humidity (%)
 data.wind.speed     → wind speed (m/s)
 */
+(function () {
+  const wxBtn  = document.getElementById("t4-loadWx");
+  const tempEl = document.getElementById("t4-temp");
+  const humEl  = document.getElementById("t4-hum");
+  const windEl = document.getElementById("t4-wind");
+  if (!wxBtn || !tempEl || !humEl || !windEl) return;
+
+  const API_KEY = "1e134d1402881758ecd253bcd0d0d300";
+
+  wxBtn.addEventListener("click", function () {
+    wxBtn.disabled = true;
+    tempEl.textContent = humEl.textContent = windEl.textContent = "…";
+
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Dammam&appid=${API_KEY}&units=metric`)
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        tempEl.textContent = Math.round(data.main.temp) + " °C";
+        humEl.textContent  = data.main.humidity + " %";
+        windEl.textContent = data.wind.speed + " m/s";
+      })
+      .catch(function (err) {
+        tempEl.textContent = "Error";
+        humEl.textContent  = "Error";
+        windEl.textContent = "Error";
+        console.error("Weather fetch failed:", err);
+      })
+      .finally(function () {
+        wxBtn.disabled = false;
+      });
+  });
+})();
